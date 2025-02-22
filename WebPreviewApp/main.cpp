@@ -82,16 +82,22 @@ public:
     int fnlDomainWarpFractalOctaves = 3;
     float fnlDomainWarpFractalLacunarity = 2.0f;
     float fnlDomainWarpFractalGain = 0.5f;
+	
+	std::string Combined = "";
 
     void draw_ui() override
     {
-        static const char* enumNoiseType[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "Value Cubic", "Value" };
+        static const char* enumNoiseType[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "ValueCubic", "Value" };
+		static const char* enumEZNoiseType[] = { "simplex", "smooth", "vor", "per", "cubic", "val" };
         static const char* enumRotationType[] = { "None", "Improve XY Planes", "Improve XZ Planes" };
-        static const char* enumFractalType[] = { "None", "FBm", "Ridged", "Ping Pong" };
-        static const char* enumCellularType[] = { "Euclidean", "Euclidean Sq", "Manhattan", "Hybrid" };
+        static const char* enumFractalType[] = { "None", "FBm", "Ridged", "PingPong" };
+        static const char* enumCellularType[] = { "Euclidean", "EuclideanSq", "Manhattan", "Hybrid" };
         static const char* enumCellularReturnType[] = { "Cell Value", "Distance", "Distance 2", "Distance 2 Add", "Distance 2 Sub", "Distance 2 Mul", "Distance 2 Div" };
+		static const char* enumEZCellularReturnType[] = { "cell", "1", "sq", "2add", "2sub", "2mul", "2div" };
         static const char* enumDomainWarpType[] = { "None", "OpenSimplex2", "OpenSimplex2 Reduced", "Basic Grid" };
+		static const char* enumEZDomainWarpType[] = { "None", "Simplex", "Reduced", "Grid" };
         static const char* enumDomainWarpFractalType[] = { "None", "Progressive", "Independent" };
+		static const char* enumEZDomainWarpFractalType[] = { "None", "prog", "ind" };
 
         SetupDocking();
 
@@ -255,6 +261,57 @@ public:
 
             ImGui::NewLine();
             ImGui::TextUnformatted(FNL_VERSION);
+			
+			
+			bool ezEditsNoise = ImGui::Button("Copy ezEdits Noise Paramaters");
+			if (ezEditsNoise)
+			{
+			std::string NoiseType = enumEZNoiseType[fnlNoiseType];
+			std::string Open = "(";
+			std::string Close = ")";
+			std::string Combined = NoiseType + Open;
+			
+			Combined = Combined + "Freq:" + std::to_string(fnlFrequency).substr(0, std::to_string(fnlFrequency).find(".") + 4) + ",";
+			if (fnlFractalType != 0)
+			{ 
+				Combined = Combined + "Fractal:" + enumFractalType[fnlFractalType] + ",Oct:" + std::to_string(fnlFractalOctaves) + ",Lac:" + std::to_string(fnlFractalLacunarity).substr(0, std::to_string(fnlFractalLacunarity).find(".") + 4) + ",Gain:" + std::to_string(fnlFractalGain).substr(0, std::to_string(fnlFractalGain).find(".") + 4) + ",Weighted:" + std::to_string(fnlFractalWeightedStrength).substr(0, std::to_string(fnlFractalWeightedStrength).find(".") + 4) + ",";
+				if (fnlFractalType == 3)
+				{
+					Combined = Combined + "PPStr:" + std::to_string(fnlFractalPingPongStrength).substr(0, std::to_string(fnlFractalPingPongStrength).find(".") + 4) + ",";
+				}
+
+			}
+			if (fnlNoiseType == 2)
+			{
+				Combined = Combined + "Distance:" + enumCellularType[fnlCellularType] + ",DistReturn:" + enumEZCellularReturnType[fnlCellularReturnType]  + ",";
+				if (fnlCellularJitter != 1.0)
+				{
+					Combined = Combined + "Jitter:" + std::to_string(fnlCellularJitter).substr(0, std::to_string(fnlCellularJitter).find(".") + 4) + ",";
+				}
+			}
+			if (fnlDomainWarpType != 0)
+			{
+				Combined = Combined + "Warp:" + enumEZDomainWarpType[fnlDomainWarpType] + ",WarpAmp:" + std::to_string(fnlDomainWarpAmplitude).substr(0, std::to_string(fnlDomainWarpAmplitude).find(".") + 4) + ",WarpFreq:" + std::to_string(fnlDomainWarpFrequency).substr(0, std::to_string(fnlDomainWarpFrequency).find(".") + 4) + ",";
+				
+				if (fnlDomainWarpFractalType != 0)
+				{
+					Combined = Combined + "WarpFrac:" + enumEZDomainWarpFractalType[fnlDomainWarpFractalType] + ",WarpOct:" + std::to_string(fnlDomainWarpFractalOctaves) + ",WarpLac:" + std::to_string(fnlDomainWarpFractalLacunarity).substr(0, std::to_string(fnlDomainWarpFractalLacunarity).find(".") + 4) + ",WarpGain:" + std::to_string(fnlDomainWarpFractalGain).substr(0, std::to_string(fnlDomainWarpFractalGain).find(".") + 4);
+				}
+			}
+			if (Combined.ends_with(","))
+			{
+				Combined.pop_back();
+			}
+			
+			Combined = Combined + Close;
+	
+
+				EM_ASM({
+					navigator.clipboard.writeText(UTF8ToString($0));
+				}, Combined.c_str());
+			}
+			
+
 
             ImGui::EndTabItem();
         }
